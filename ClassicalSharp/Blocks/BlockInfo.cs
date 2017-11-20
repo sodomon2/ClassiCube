@@ -90,6 +90,7 @@ namespace ClassicalSharp {
 		public static bool[] CanPlace = new bool[Block.Count];		
 		public static bool[] CanDelete = new bool[Block.Count];		
 		public static bool[] Tinted = new bool[Block.Count];
+		public static byte[] SpriteOffset = new byte[Block.Count];
 		
 		/// <summary> Gets whether the given block has an opaque draw type and is also a full tile block. </summary>
 		/// <remarks> Full tile block means Min of (0, 0, 0) and max of (1, 1, 1). </remarks>
@@ -157,6 +158,7 @@ namespace ClassicalSharp {
 			SpeedMultiplier[block] = 1;
 			Name[block] = DefaultName(block);
 			Tinted[block] = false;
+			SpriteOffset[block] = 0;
 			
 			Draw[block] = DefaultSet.Draw(block);
 			if (Draw[block] == DrawType.Sprite) {

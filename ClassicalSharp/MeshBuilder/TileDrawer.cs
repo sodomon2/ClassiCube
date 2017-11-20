@@ -3,6 +3,7 @@ using System;
 using System.Runtime.InteropServices;
 using ClassicalSharp.GraphicsAPI;
 using ClassicalSharp.Textures;
+using ClassicalSharp.Generator;
 using OpenTK;
 
 #if USE16_BIT
@@ -118,6 +119,7 @@ namespace ClassicalSharp {
 			part.vCount[face] += 4;
 		}
 		
+		JavaRandom rnd = new JavaRandom(0);
 		protected virtual void DrawSprite(int count) {
 			int texId = BlockInfo.textures[curBlock * Side.Sides + Side.Right];
 			int i = texId / elementsPerAtlas1D;
@@ -127,6 +129,20 @@ namespace ClassicalSharp {
 			float x2 = X + 13.5f/16, y2 = Y + 1, z2 = Z + 13.5f/16;
 			const float u1 = 0, u2 = 15.99f/16f;
 			float v1 = vOrigin, v2 = vOrigin + invVerElementSize * 15.99f/16f;
+			
+			byte offsetType = BlockInfo.SpriteOffset[curBlock];
+			if (offsetType > 0) {
+				rnd.SetSeed((X + 1217 * Y + 4751 * Z) & 0x7fffffff);
+				float val = rnd.NextFloat() * 0.25f;
+				
+				if (offsetType == 1) {
+					x1 += val; x2 += val;
+				} else if (offsetType == 2) {
+					y1 += val; y2 += val;
+				} else if (offsetType == 3) {
+					z1 += val; z2 += val;
+				}
+			}
 			
 			DrawInfo part = normalParts[i];
 			int col = fullBright ? FastColour.WhitePacked : light.LightCol_Sprite_Fast(X, Y, Z);
