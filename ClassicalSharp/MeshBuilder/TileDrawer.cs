@@ -133,14 +133,18 @@ namespace ClassicalSharp {
 			byte offsetType = BlockInfo.SpriteOffset[curBlock];
 			if (offsetType > 0) {
 				rnd.SetSeed((X + 1217 * Y + 4751 * Z) & 0x7fffffff);
-				float val = rnd.NextFloat() * 0.25f;
+				float val1 = rnd.Next(-3, 3 + 1) / 16.0f;
+				float val2 = rnd.Next(-3, 3 + 1) / 16.0f;
 				
 				if (offsetType == 1) {
-					x1 += val; x2 += val;
+					x1 += val1; x2 += val1;
 				} else if (offsetType == 2) {
-					y1 += val; y2 += val;
+					y1 += val1; y2 += val1;
 				} else if (offsetType == 3) {
-					z1 += val; z2 += val;
+					z1 += val1; z2 += val1;
+				} else {
+					x1 += val1; x2 += val1;
+					z1 += val2; z2 += val2;
 				}
 			}
 			
