@@ -88,8 +88,6 @@ void TextWidget_SetConst(struct TextWidget* w, const char* text, const FontDesc*
 *------------------------------------------------------ButtonWidget-------------------------------------------------------*
 *#########################################################################################################################*/
 #define BUTTON_uWIDTH (200.0f / 256.0f)
-#define BUTTON_MIN_WIDTH 40
-
 static struct Texture Button_ShadowTex   = { GFX_NULL, Tex_Rect(0,0, 0,0), Widget_UV(0,66, 200,86)  };
 static struct Texture Button_SelectedTex = { GFX_NULL, Tex_Rect(0,0, 0,0), Widget_UV(0,86, 200,106) };
 static struct Texture Button_DisabledTex = { GFX_NULL, Tex_Rect(0,0, 0,0), Widget_UV(0,46, 200,66)  };
@@ -156,7 +154,8 @@ void ButtonWidget_Make(struct ButtonWidget* w, int minWidth, Widget_LeftClick on
 	Widget_Reset(w);
 	w->VTABLE    = &ButtonWidget_VTABLE;
 	w->optName   = NULL;
-	w->minWidth  = minWidth;
+	w->minWidth  = Display_ScaleX(minWidth);
+	w->minHeight = Display_ScaleY(40);
 	w->MenuClick = onClick;
 	Widget_SetLocation(w, horAnchor, verAnchor, xOffset, yOffset);
 }
@@ -174,7 +173,7 @@ void ButtonWidget_Set(struct ButtonWidget* w, const String* text, const FontDesc
 	}
 
 	w->width  = max(w->tex.Width,  w->minWidth);
-	w->height = max(w->tex.Height, BUTTON_MIN_WIDTH);
+	w->height = max(w->tex.Height, w->minHeight);
 	Widget_Reposition(w);
 }
 

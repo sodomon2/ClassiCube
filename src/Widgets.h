@@ -30,7 +30,7 @@ typedef void (*Button_Set)(const String* raw);
 struct ButtonWidget {
 	Widget_Layout
 	struct Texture tex;
-	int minWidth;
+	int minWidth, minHeight;
 	const char* optName;
 	Button_Get GetValue;
 	Button_Set SetValue;
