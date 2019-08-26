@@ -349,9 +349,8 @@ static void StatusScreen_ContextLost(void* screen) {
 }
 
 static void StatusScreen_ContextRecreated(void* screen) {	
-	static const String chars   = String_FromConst("0123456789-, ()");
-	static const String prefix  = String_FromConst("Position: ");
-	static const String version = String_FromConst("0.30");
+	static const String chars  = String_FromConst("0123456789-, ()");
+	static const String prefix = String_FromConst("Position: ");
 
 	struct StatusScreen* s   = (struct StatusScreen*)screen;
 	struct TextWidget* line1 = &s->line1;
@@ -369,14 +368,16 @@ static void StatusScreen_ContextRecreated(void* screen) {
 	s->posAtlas.tex.Y = y;
 
 	y += s->posAtlas.tex.Height;
-	TextWidget_Make(line2, ANCHOR_MIN, ANCHOR_MIN, 2, y);
+	TextWidget_Make(line2, ANCHOR_MIN, ANCHOR_MIN, 2, 0);
 	line2->reducePadding = true;
+	/* yOffset in TextWidget_Make gets DPI scaled, but y is in pixels */
+	line2->yOffset = y;
 
 	if (Game_ClassicMode) {
 		/* Swap around so 0.30 version is at top */
 		line2->yOffset = 2;
 		line1->yOffset = s->posAtlas.tex.Y;
-		TextWidget_Set(line2, &version, &s->font);
+		TextWidget_SetConst(line2, "0.30", &s->font);
 
 		Widget_Reposition(line1);
 		Widget_Reposition(line2);

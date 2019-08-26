@@ -1441,8 +1441,8 @@ void MenuInputWidget_Create(struct MenuInputWidget* w, int width, int height, co
 	w->base.font     = font;
 	w->base.caretPos = -1;
 
-	w->minWidth  = width;
-	w->minHeight = height;
+	w->minWidth  = Display_ScaleX(width);
+	w->minHeight = Display_ScaleY(height);
 	w->desc      = *desc;
 
 	w->base.convertPercents = false;
