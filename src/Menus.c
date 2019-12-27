@@ -1679,6 +1679,8 @@ void LoadLevelScreen_Show(void) {
 *#########################################################################################################################*/
 struct KeyBindingsScreen;
 typedef void (*InitKeyBindings)(struct KeyBindingsScreen* s);
+#define KEYBINDINGS_MAX_BINDINGS 12
+#define KEYBINDINGS_MAX_VERTICES (12 * BUTTONWIDGET_MAX + 2 * TEXTWIDGET_MAX + 3 * BUTTONWIDGET_MAX)
 
 static struct KeyBindingsScreen {
 	Screen_Body	
@@ -1692,8 +1694,16 @@ static struct KeyBindingsScreen {
 	struct FontDesc titleFont;
 	struct TextWidget title, msg;
 	struct ButtonWidget back, left, right;
-	struct ButtonWidget buttons[12];
-} KeyBindingsScreen_Instance;
+	struct ButtonWidget buttons[KEYBINDINGS_MAX_BINDINGS];
+} KeyBindingsScreen;
+
+static struct Widget* keyBindings_widgets[KEYBINDINGS_MAX_BINDINGS + 5] = {
+	NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, /* These are filled in by specific keybindings screen */
+	(struct Widget*)&KeyBindingsScreen.title, (struct Widget*)&KeyBindingsScreen.msg,
+	(struct Widget*)&KeyBindingsScreen.back,  (struct Widget*)&KeyBindingsScreen.left,
+	(struct Widget*)&KeyBindingsScreen.right
+};
 
 static void KeyBindingsScreen_Update(struct KeyBindingsScreen* s, int i) {
 	String text; char textBuffer[STRING_SIZE];
@@ -1742,6 +1752,7 @@ static void KeyBindingsScreen_ContextRecreated(void* screen) {
 	struct KeyBindingsScreen* s = (struct KeyBindingsScreen*)screen;
 	struct FontDesc textFont;
 	int i;
+	s->vb = Gfx_CreateDynamicVb(VERTEX_FORMAT_P3FT2FC4B, KEYBINDINGS_MAX_VERTICES);
 
 	Menu_MakeTitleFont(&s->titleFont);
 	Menu_MakeBodyFont(&textFont);
@@ -1757,7 +1768,13 @@ static void KeyBindingsScreen_ContextRecreated(void* screen) {
 	ButtonWidget_SetConst(&s->right, ">", &s->titleFont);
 }
 
-static void KeyBindingsScreen_BuildMesh(void* screen) { }
+static void KeyBindingsScreen_BuildMesh(void* screen) { 
+	struct Screen* s = (struct Screen*)screen;
+	VertexP3fT2fC4b vertices[KEYBINDINGS_MAX_VERTICES];
+
+	Screen_BuildMesh(screen, vertices);
+	Gfx_SetDynamicVbData(s->vb, vertices, KEYBINDINGS_MAX_VERTICES);
+}
 
 static void KeyBindingsScreen_InitWidgets(struct KeyBindingsScreen* s, int y, int arrowsY, int leftLength, int btnWidth, const char* title) {
 	int origin, xOffset, i, xDir;
@@ -1773,27 +1790,28 @@ static void KeyBindingsScreen_InitWidgets(struct KeyBindingsScreen* s, int y, in
 			ANCHOR_CENTRE, ANCHOR_CENTRE, xDir * xOffset, y);
 		y += 50; /* distance between buttons */
 	}
+	for (; i < KEYBINDINGS_MAX_BINDINGS; i++) { s->widgets[i] = NULL; }
 
-	Menu_Label(s, i, &s->title, ANCHOR_CENTRE, ANCHOR_CENTRE, 0, -180); i++;
-	Menu_Label(s, i, &s->msg,   ANCHOR_CENTRE, ANCHOR_CENTRE, 0,  100); i++;
-	Menu_Back(s,  i, &s->back, 
-		Gui_ClassicMenu ? Menu_SwitchClassicOptions : Menu_SwitchOptions); i++;
-	if (!s->leftPage && !s->rightPage) return;
+	TextWidget_Make(&s->title, ANCHOR_CENTRE, ANCHOR_CENTRE, 0, -180);
+	TextWidget_Make(&s->msg,   ANCHOR_CENTRE, ANCHOR_CENTRE, 0,  100);
+	Menu_MakeBack(&s->back,    Gui_ClassicMenu ? Menu_SwitchClassicOptions : Menu_SwitchOptions);
+
+	if (!s->leftPage && !s->rightPage) { s->numWidgets = i + 3; return; }
 	
-	Menu_Button(s, i, &s->left,  40, s->leftPage,
-		ANCHOR_CENTRE, ANCHOR_CENTRE, -btnWidth - 35, arrowsY); i++;
-	Menu_Button(s, i, &s->right, 40, s->rightPage,
-		ANCHOR_CENTRE, ANCHOR_CENTRE,  btnWidth + 35, arrowsY); i++;
+	ButtonWidget_Make(&s->left,  40, s->leftPage,
+		ANCHOR_CENTRE, ANCHOR_CENTRE, -btnWidth - 35, arrowsY);
+	ButtonWidget_Make(&s->right, 40, s->rightPage,
+		ANCHOR_CENTRE, ANCHOR_CENTRE,  btnWidth + 35, arrowsY);
 
 	s->left.disabled  = !s->leftPage;
 	s->right.disabled = !s->rightPage;
+	s->numWidgets = i + 3 + 2;
 }
 
 static void KeyBindingsScreen_Init(void* screen) {
-	static struct Widget* widgets[12 + 5]; /* 12 buttons + extra widgets */
 	struct KeyBindingsScreen* s = (struct KeyBindingsScreen*)screen;
-	s->widgets    = widgets;
-	s->numWidgets = s->bindsCount + 5;
+	s->widgets    = keyBindings_widgets;
+	s->numWidgets = Array_Elems(keyBindings_widgets);
 	s->curI       = -1;
 
 	s->leftPage  = NULL;
@@ -1805,13 +1823,13 @@ static void KeyBindingsScreen_Init(void* screen) {
 
 static const struct ScreenVTABLE KeyBindingsScreen_VTABLE = {
 	KeyBindingsScreen_Init,    Screen_NullUpdate, Screen_NullFunc,  
-	MenuScreen_Render,         KeyBindingsScreen_BuildMesh,
+	MenuScreen_Render2,        KeyBindingsScreen_BuildMesh,
 	KeyBindingsScreen_KeyDown, Screen_TInput,     Screen_TKeyPress, Screen_TText,
 	Menu_PointerDown,          Screen_TPointer,   Menu_PointerMove, Screen_TMouseScroll,
 	Screen_Layout,             KeyBindingsScreen_ContextLost, KeyBindingsScreen_ContextRecreated
 };
 static void KeyBindingsScreen_Show(int bindsCount, const cc_uint8* binds, const char* const* descs, InitKeyBindings doInit) {
-	struct KeyBindingsScreen* s = &KeyBindingsScreen_Instance;
+	struct KeyBindingsScreen* s = &KeyBindingsScreen;
 	s->grabsInput = true;
 	s->closable   = true;
 	s->VTABLE     = &KeyBindingsScreen_VTABLE;
