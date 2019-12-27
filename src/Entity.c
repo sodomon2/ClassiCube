@@ -541,7 +541,7 @@ void Entities_RenderModels(double delta, float t) {
 }
 	
 
-void Entities_RenderNames(double delta) {
+void Entities_RenderNames(void) {
 	struct LocalPlayer* p = &LocalPlayer_Instance;
 	cc_bool hadFog;
 	int i;
@@ -567,7 +567,7 @@ void Entities_RenderNames(double delta) {
 	if (hadFog) Gfx_SetFog(true);
 }
 
-void Entities_RenderHoveredNames(double delta) {
+void Entities_RenderHoveredNames(void) {
 	struct LocalPlayer* p = &LocalPlayer_Instance;
 	cc_bool allNames, hadFog;
 	int i;
